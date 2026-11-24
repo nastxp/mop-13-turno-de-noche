@@ -284,13 +284,30 @@ El juego está desplegado en **Hostinger** como aplicación Node.js:
 - **Estado del servidor:** https://khaki-elk-914724.hostingersite.com/healthz
 - **Presentación:** https://khaki-elk-914724.hostingersite.com/slides/
 
-Pasos:
+### Opción A · Hostinger conectado a este repositorio de GitHub
+
+Hostinger clona la rama `main`, compila y arranca el servidor Node.js. **No uses el preajuste «Vite»**: publica
+`dist/` como web estática y el servidor no se ejecuta (sin multijugador ni `/slides/`, y `/healthz` devuelve 503).
+
+| Campo | Valor |
+|---|---|
+| Preajuste del framework | Uno que ejecute un servidor Node.js (*Express.js* u *Otro*), no *Vite* |
+| Rama | `main` |
+| Versión de Node | 22.x (vale cualquiera ≥ 18) |
+| Directorio raíz | `./` |
+| Comando de compilación | `npm run deploy:prepare` |
+| Archivo de entrada | `deploy/server.js` |
+| Comando de inicio | `npm start` |
+
+`npm run deploy:prepare` compila el juego y copia `dist/` y `slides/` dentro de `deploy/`; `npm start` arranca
+`deploy/server.js`. Hostinger asigna el puerto con la variable `PORT`.
+
+### Opción B · Subir un zip
 
 1. `npm run deploy:prepare`: compila el juego y deja en `deploy/` todo lo necesario (`server.js`, `package.json`,
    `dist/` y `slides/`).
-2. Comprime la carpeta `deploy/` en un zip y súbela a Hostinger.
+2. Comprime el contenido de la carpeta `deploy/` en un zip y súbelo a Hostinger.
 3. Configura la aplicación: archivo de entrada `server.js`, comando de inicio `npm start` y comando de build vacío.
-   Hostinger asigna el puerto con la variable `PORT`.
 
 La guía paso a paso (hPanel, VPS con PM2 + Nginx, cabeceras para WebSocket y TURN para el chat de voz) está en
 [deploy/README.md](deploy/README.md).
