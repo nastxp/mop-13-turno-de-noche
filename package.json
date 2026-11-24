@@ -1,0 +1,20 @@
+{
+  "name": "mop-13",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "MOP-13 — Turno de noche en el espacio. Simulador de conserje espacial en pixel art.",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3",
+    "vite": "6.3.5"
+  }
+}

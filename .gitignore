@@ -1,0 +1,21 @@
+# dependencias
+node_modules/
+
+# compilados (se generan con npm run build)
+dist/
+dist-artifact/
+deploy/dist/
+
+# paquetes generados
+*.zip
+
+# herramientas locales
+.claude/
+.impeccable/
+.vscode/
+.idea/
+
+# sistema
+.DS_Store
+Thumbs.db
+*.log

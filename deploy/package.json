@@ -1,0 +1,15 @@
+{
+  "name": "mop-13-turno-de-noche",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MOP-13 · Turno de noche en el espacio. Juego web en pixel art (Phaser 3) servido con Node.js sin dependencias.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo \"El juego ya viene compilado en ./dist\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}
