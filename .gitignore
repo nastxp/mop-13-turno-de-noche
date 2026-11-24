@@ -5,6 +5,7 @@ node_modules/
 dist/
 dist-artifact/
 deploy/dist/
+deploy/slides/
 
 # paquetes generados
 *.zip

@@ -1,6 +1,8 @@
-# MOP-13 · Turno de noche en el espacio — despliegue en Hostinger (Node.js)
+# MOP-13 · Guía de despliegue en Hostinger (Node.js)
 
-Este paquete contiene el juego **ya compilado** (`dist/`) y un servidor Node.js **sin dependencias** (`server.js`).
+> Volver al [README principal](../README.md).
+
+Este paquete contiene el juego **ya compilado** (`dist/`), la presentación del TFM (`slides/`) y un servidor Node.js **sin dependencias** (`server.js`).
 No hace falta `npm install` ni ningún paso de compilación en el servidor.
 
 El mismo servidor hace de **repetidor del multijugador cooperativo** (hasta 4 conserjes por sala, con un código de 5 letras).
@@ -10,6 +12,7 @@ mop13-hostinger/
 ├── server.js      ← servidor estático (brotli/gzip, caché, /healthz) + salas multijugador en /mp
 ├── package.json   ← "npm start" arranca el servidor · Node 18 o superior
 ├── dist/          ← el juego (HTML + JS + CSS)
+├── slides/        ← la presentación del TFM (HyperFrames), servida en /slides/
 └── README.md
 ```
 
@@ -24,7 +27,8 @@ mop13-hostinger/
    - **Comando de inicio (start):** `npm start`
    - **Directorio raíz:** la carpeta donde quedan `server.js` y `dist/` tras descomprimir.
 4. Pulsa **Desplegar**. Hostinger asigna el puerto con la variable `PORT`; el servidor ya la usa.
-5. Abre tu dominio y comprueba que `https://tu-dominio/healthz` responde `ok · salas 0`.
+5. Abre tu dominio y comprueba que `https://tu-dominio/healthz` responde `ok · salas 0`
+   y que la presentación se abre en `https://tu-dominio/slides/`.
 6. Prueba el multijugador (ver más abajo). El juego usa **WebSocket** en `/mp`; si el alojamiento no lo deja pasar,
    cambia solo a **sondeo HTTP** (`/mp/open`, `/mp/send`, `/mp/recv`), así que funciona igualmente, con algo más de retardo.
 

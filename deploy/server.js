@@ -8,6 +8,7 @@
  *      · Alternativa HTTP de sondeo largo en /mp/open, /mp/send y /mp/recv
  *        para alojamientos que no dejan pasar WebSocket.
  *    El servidor solo hace de repetidor: el anfitrión simula la nave y los demás reciben su estado.
+ *  - Sirve la presentación del proyecto (./slides, hecha con HyperFrames) en /slides/.
  *  - Puerto: variable de entorno PORT (Hostinger la asigna) o 3000 en local.
  */
 'use strict';
@@ -21,6 +22,7 @@ const crypto = require('crypto');
 const PORT = Number(process.env.PORT) || Number(process.argv[3]) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 const ROOT = path.resolve(__dirname, process.argv[2] || 'dist');
+const SLIDES_ROOT = path.resolve(__dirname, 'slides');
 const MAX_PLAYERS = 4;
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const MAX_MSG = 4 * 1024 * 1024;
@@ -76,12 +78,12 @@ function load(file, stat) {
   return entry;
 }
 
-function resolveFile(urlPath) {
+function resolveFile(urlPath, root = ROOT) {
   let p;
   try { p = decodeURIComponent(urlPath.split('?')[0].split('#')[0]); } catch { return null; }
   if (p.includes('\0')) return null;
-  const full = path.normalize(path.join(ROOT, p));
-  if (full !== ROOT && !full.startsWith(ROOT + path.sep)) return null; // evita salir de dist
+  const full = path.normalize(path.join(root, p));
+  if (full !== root && !full.startsWith(root + path.sep)) return null; // evita salir de dist (o de slides)
   try {
     const st = fs.statSync(full);
     if (st.isDirectory()) {
@@ -92,11 +94,10 @@ function resolveFile(urlPath) {
   } catch { return null; }
 }
 
-function serveStatic(req, res) {
-  const url = req.url || '/';
-  let found = resolveFile(url);
+function serveStatic(req, res, root = ROOT, url = req.url || '/') {
+  let found = resolveFile(url, root);
   // SPA: cualquier ruta sin extensión devuelve el juego
-  if (!found && !path.extname(url.split('?')[0])) found = resolveFile('/index.html');
+  if (!found && root === ROOT && !path.extname(url.split('?')[0])) found = resolveFile('/index.html');
   if (!found) {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', ...SECURITY_HEADERS });
     return res.end('404 · Esta sala de la USC Desastre no existe. MOP-13 tampoco la va a fregar.');
@@ -110,8 +111,8 @@ function serveStatic(req, res) {
     Vary: 'Accept-Encoding',
     ...SECURITY_HEADERS,
   };
-  const rel = path.relative(ROOT, file).split(path.sep).join('/');
-  headers['Cache-Control'] = rel.startsWith('assets/') ? 'public, max-age=31536000, immutable' : 'no-cache';
+  const rel = path.relative(root, file).split(path.sep).join('/');
+  headers['Cache-Control'] = root === ROOT && rel.startsWith('assets/') ? 'public, max-age=31536000, immutable' : 'no-cache';
   if (req.headers['if-none-match'] === entry.etag) {
     res.writeHead(304, headers);
     return res.end();
@@ -439,6 +440,19 @@ const server = http.createServer((req, res) => {
   if (url === '/healthz') {
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
     return res.end(`ok · salas ${rooms.size}`);
+  }
+  if (url === '/slides') {
+    res.writeHead(301, { Location: '/slides/', ...SECURITY_HEADERS });
+    return res.end();
+  }
+  if (url.startsWith('/slides/')) {
+    // presentación del TFM; no se exponen ficheros de trabajo de la carpeta
+    const sub = url.slice('/slides'.length);
+    if (/^\/(node_modules|package(-lock)?\.json|\.)|\/\.hyperframes\//.test(sub.split('?')[0])) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', ...SECURITY_HEADERS });
+      return res.end('404');
+    }
+    return serveStatic(req, res, SLIDES_ROOT, sub);
   }
   serveStatic(req, res);
 });

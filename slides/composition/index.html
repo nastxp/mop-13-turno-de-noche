@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>MOP-13 · Presentación del TFM</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Press Start 2P";
+        src: url("fonts/PressStart2P-latin.woff2") format("woff2");
+        font-display: block;
+      }
+      @font-face {
+        font-family: "VT323";
+        src: url("fonts/VT323-latin.woff2") format("woff2");
+        font-display: block;
+      }
+      :root {
+        --bg: #05080a;
+        --panel: #0b1411;
+        --line: #2f5a46;
+        --amber: #ffb547;
+        --yellow: #ffd23f;
+        --green: #7dffb2;
+        --cyan: #4ff0ff;
+        --red: #ff6b6b;
+        --ink: #e4efe7;
+        --dim: #9fb8aa;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body,
+      #root {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "VT323", ui-monospace, monospace;
+      }
+      /* fondo común: rejilla tenue + viñeta, como la nave del juego */
+      #root {
+        position: relative;
+      }
+      #backdrop {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 50% 40%, rgba(47, 90, 70, 0.22), transparent 62%),
+          repeating-linear-gradient(0deg, rgba(125, 255, 178, 0.035) 0 1px, transparent 1px 48px),
+          repeating-linear-gradient(90deg, rgba(125, 255, 178, 0.035) 0 1px, transparent 1px 48px),
+          var(--bg);
+      }
+      #scanlines {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 4px);
+        z-index: 50;
+      }
+      .scene-frame {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        padding: 120px 120px 120px;
+      }
+      #scene-cover {
+        opacity: 1;
+        visibility: visible;
+      }
+      .px {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        letter-spacing: 0.02em;
+      }
+      .topbar {
+        position: absolute;
+        top: 36px;
+        left: 120px;
+        right: 120px;
+        display: flex;
+        justify-content: space-between;
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-size: 28px;
+        color: var(--green);
+        opacity: 0.75;
+      }
+      .foot {
+        position: absolute;
+        left: 120px;
+        bottom: 44px;
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-size: 28px;
+        color: var(--dim);
+      }
+      h2 {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-weight: 400;
+        font-size: 72px;
+        line-height: 1.15;
+        color: var(--amber);
+        text-shadow: 5px 5px 0 #4a2c00;
+        margin-bottom: 56px;
+      }
+      p,
+      li {
+        font-size: 60px;
+        line-height: 1.08;
+      }
+      .dim {
+        color: var(--dim);
+      }
+      .green {
+        color: var(--green);
+      }
+      .amber {
+        color: var(--amber);
+      }
+      .cyan {
+        color: var(--cyan);
+      }
+      ul.bul {
+        list-style: none;
+      }
+      ul.bul li {
+        position: relative;
+        padding-left: 46px;
+        margin-bottom: 20px;
+      }
+      ul.bul li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 20px;
+        width: 20px;
+        height: 20px;
+        background: var(--yellow);
+      }
+      .shot {
+        border: 4px solid var(--line);
+        background: #000;
+        box-shadow: 0 0 0 4px #000, 0 24px 60px rgba(0, 0, 0, 0.6);
+        display: block;
+        object-fit: contain;
+      }
+      .panel {
+        background: var(--panel);
+        border: 3px solid var(--line);
+        padding: 30px 34px;
+      }
+      .row {
+        display: flex;
+        gap: 56px;
+        align-items: flex-start;
+      }
+      .num {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-size: 64px;
+        color: var(--yellow);
+        text-shadow: 4px 4px 0 #4a3a00;
+      }
+      .tag {
+        display: inline-block;
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-size: 28px;
+        padding: 8px 12px;
+        background: var(--amber);
+        color: #1a1000;
+        margin-right: 10px;
+      }
+
+      ul.tight li {
+        font-size: 54px;
+        margin-bottom: 12px;
+      }
+      ul.tight li::before {
+        top: 17px;
+      }
+      /* ---------- portada ---------- */
+      #scene-cover .bgshot {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.28;
+        filter: saturate(0.8);
+      }
+      #scene-cover .shade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(5, 8, 10, 0.96) 0%, rgba(5, 8, 10, 0.86) 48%, rgba(5, 8, 10, 0.35) 100%);
+      }
+      #scene-cover .inner {
+        position: relative;
+        padding-top: 150px;
+      }
+      .eyebrow {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-size: 30px;
+        color: var(--green);
+        margin-bottom: 34px;
+      }
+      .logo {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-size: 220px;
+        line-height: 1;
+        color: var(--amber);
+        text-shadow: 10px 10px 0 #5a3500, 0 0 40px rgba(255, 181, 71, 0.35);
+        margin-bottom: 40px;
+      }
+      .subtitle {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-size: 52px;
+        color: var(--green);
+        margin-bottom: 64px;
+      }
+      .cover-meta {
+        font-size: 58px;
+        color: var(--ink);
+      }
+
+      /* ---------- bucle ---------- */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 28px;
+        margin-top: 10px;
+      }
+      .step {
+        min-height: 600px;
+      }
+      .step .num {
+        margin-bottom: 26px;
+      }
+      .step h3 {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-weight: 400;
+        font-size: 38px;
+        color: var(--amber);
+        margin-bottom: 24px;
+      }
+      .step p {
+        font-size: 54px;
+      }
+      .frag {
+        opacity: 0;
+      }
+
+      /* ---------- herramientas ---------- */
+      .tools {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px 40px;
+      }
+      .tool {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 24px 30px;
+      }
+      .key {
+        flex: none;
+        width: 84px;
+        height: 84px;
+        display: grid;
+        place-items: center;
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-size: 32px;
+        background: var(--amber);
+        color: #1a1000;
+        box-shadow: 0 6px 0 #7a4c00;
+      }
+      .tool b {
+        display: block;
+        font-weight: 400;
+        font-size: 58px;
+        color: var(--ink);
+      }
+      .tool span {
+        display: block;
+        font-size: 46px;
+        color: var(--dim);
+      }
+
+      /* ---------- modos ---------- */
+      .modes {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 26px 36px;
+      }
+      .mode h3 {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-weight: 400;
+        font-size: 38px;
+        color: var(--amber);
+        margin-bottom: 14px;
+      }
+      .mode p {
+        font-size: 54px;
+      }
+
+      /* ---------- arquitectura ---------- */
+      .arch {
+        display: grid;
+        grid-template-columns: 1fr 140px 1.15fr 140px 1fr;
+        align-items: center;
+        margin-top: 20px;
+      }
+      .node {
+        min-height: 400px;
+      }
+      .node h3 {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-weight: 400;
+        font-size: 30px;
+        color: var(--amber);
+        margin-bottom: 20px;
+      }
+      .node p {
+        font-size: 48px;
+      }
+      .arrow {
+        text-align: center;
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        color: var(--green);
+      }
+      .arrow .glyph {
+        font-size: 56px;
+        display: block;
+      }
+      .arrow small {
+        display: block;
+        font-family: "VT323", ui-monospace, monospace;
+        font-size: 40px;
+        margin-top: 10px;
+      }
+      .voice {
+        margin-top: 44px;
+        border-color: #2b5f6b;
+        background: #08141a;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+      }
+      .voice p {
+        font-size: 50px;
+      }
+
+      /* ---------- stack ---------- */
+      .stack {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 26px;
+      }
+      .stack .panel h3 {
+        font-family: "Press Start 2P", ui-monospace, monospace;
+        font-weight: 400;
+        font-size: 30px;
+        color: var(--green);
+        margin-bottom: 14px;
+      }
+      .stack .panel b {
+        display: block;
+        font-weight: 400;
+        font-size: 62px;
+        color: var(--amber);
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+      .stack .panel span {
+        font-size: 48px;
+        color: var(--dim);
+        line-height: 1.05;
+        display: block;
+      }
+
+      /* ---------- código ---------- */
+      .term {
+        font-family: "VT323", ui-monospace, monospace;
+        font-size: 50px;
+        line-height: 1.15;
+        background: #020403;
+        border: 3px solid var(--line);
+        padding: 30px 36px;
+        color: var(--green);
+        white-space: pre;
+      }
+
+      /* ---------- cierre ---------- */
+      .links {
+        display: grid;
+        gap: 26px;
+        margin-top: 20px;
+      }
+      .link {
+        display: flex;
+        align-items: center;
+        gap: 34px;
+      }
+      .link .tag {
+        width: 250px;
+        text-align: center;
+        font-size: 28px;
+        padding: 14px 0;
+      }
+      .link p {
+        font-size: 66px;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="application/hyperframes-slideshow+json">
+      {
+        "slides": [
+          { "sceneId": "cover", "notes": "Presentarse. MOP-13 es mi TFM del Máster de Desarrollo con IA: un juego web cooperativo que se juega en el navegador, sin instalar nada." },
+          { "sceneId": "idea", "notes": "La idea: el juego de gestión de crisis visto desde abajo. No eres el capitán: eres el conserje del turno de noche y tu trabajo es que todo esté limpio a las 06:00 mientras la nave se cae a pedazos." },
+          { "sceneId": "bucle", "fragments": [12.3, 12.6, 12.9], "notes": "Cada turno sigue el mismo bucle. Pulsar flecha derecha para ir mostrando cada paso." },
+          { "sceneId": "nave", "notes": "La nave es una simulación: cada tripulante tiene necesidades (hambre, fatiga, vejiga, trabajo, vida social) y decide qué hacer. Ensucian, rompen cosas y provocan incidentes." },
+          { "sceneId": "herramientas", "notes": "Ocho herramientas con teclas 1 a 8. Cada una tiene su carga, su desgaste y sus pros y contras: la fregona deja el suelo mojado y la tripulación resbala." },
+          { "sceneId": "modos", "notes": "Modos de juego. La historia empieza con un turno de prueba y sigue con nueve noches con misión; tres de ellas acaban con un jefe." },
+          { "sceneId": "progresion", "notes": "La progresión se guarda en el navegador: créditos, experiencia, mejoras, ropa y logros." },
+          { "sceneId": "coop", "notes": "Lo más complejo del proyecto: cooperativo online de hasta cuatro jugadores, con chat de voz." },
+          { "sceneId": "arquitectura", "fragments": [48.3], "notes": "El anfitrión es la autoridad: simula la nave entera. El servidor solo reenvía mensajes. Flecha derecha para mostrar la voz por WebRTC." },
+          { "sceneId": "stack", "notes": "Stack tecnológico. Todo el arte se dibuja por código y el sonido se sintetiza con Web Audio." },
+          { "sceneId": "servidor", "notes": "El servidor no tiene ninguna dependencia de npm: solo módulos de Node." },
+          { "sceneId": "despliegue", "notes": "Desplegado en Hostinger como aplicación Node.js. Enseñar /healthz en directo." },
+          { "sceneId": "gracias", "notes": "Cerrar invitando a jugar. Abrir el enlace y crear una sala en directo si da tiempo." }
+        ]
+      }
+    </script>
+
+    <div id="root" data-composition-id="root" data-start="0" data-duration="78" data-width="1920" data-height="1080">
+    <div id="backdrop"></div>
+
+    <!-- 1 · PORTADA -->
+    <div id="scene-cover" class="scene-frame clip" data-composition-id="cover" data-start="0" data-duration="6" data-label="Portada" data-width="1920" data-height="1080">
+      <img class="bgshot" src="img/play1.jpg" alt="" />
+      <div class="shade"></div>
+      <div class="inner">
+        <div class="eyebrow" data-anim>TRABAJO FIN DE MÁSTER · DESARROLLO CON IA</div>
+        <div class="logo" data-anim>MOP-13</div>
+        <div class="subtitle" data-anim>TURNO DE NOCHE EN EL ESPACIO</div>
+        <p class="cover-meta" data-anim>Juego web cooperativo en pixel art · <span class="green">TypeScript + Phaser 3 + Node.js</span></p>
+        <p class="cover-meta dim" data-anim>nastxp · 2026</p>
+      </div>
+    </div>
+
+    <!-- 2 · LA IDEA -->
+    <div id="scene-idea" class="scene-frame clip" data-composition-id="idea" data-start="6" data-duration="6" data-label="La idea" data-width="1920" data-height="1080">
+      <div class="topbar"><span>USC DESASTRE · DPTO. DE LIMPIEZA</span><span>02</span></div>
+      <h2 data-anim>LA IDEA</h2>
+      <div class="row">
+        <div style="flex: 1">
+          <p class="amber" data-anim style="font-size: 56px; margin-bottom: 40px">«Puedes salvar la galaxia, pero si no has fregado el comedor, no cobrarás las horas extra.»</p>
+          <ul class="bul" data-anim>
+            <li>Eres <span class="green">MOP-13</span>, el conserje del turno de noche de la nave USC Desastre.</li>
+            <li>La tripulación atiende las emergencias. Tú friegas lo que dejan.</li>
+            <li>Se juega en el navegador: sin instalar nada.</li>
+          </ul>
+        </div>
+        <img class="shot" data-anim src="img/g0.jpg" alt="Memorándum del primer turno" style="width: 820px; height: 461px; margin-top: 10px" />
+      </div>
+    </div>
+
+    <!-- 3 · BUCLE DE JUEGO -->
+    <div id="scene-bucle" class="scene-frame clip" data-composition-id="bucle" data-start="12" data-duration="6" data-label="Bucle de juego" data-width="1920" data-height="1080">
+      <div class="topbar"><span>CÓMO SE JUEGA</span><span>03</span></div>
+      <h2 data-anim>UN TURNO: 22:00 → 06:00</h2>
+      <div class="steps">
+        <div class="panel step" data-anim>
+          <div class="num">01</div>
+          <h3>FICHAR</h3>
+          <p>Un memorándum asigna las tareas del turno: fregar salas, vaciar papeleras…</p>
+        </div>
+        <div class="panel step frag" id="frag-bucle-2">
+          <div class="num">02</div>
+          <h3>LIMPIAR</h3>
+          <p>Suciedad, basura, charcos y manchas con 8 herramientas distintas.</p>
+        </div>
+        <div class="panel step frag" id="frag-bucle-3">
+          <div class="num">03</div>
+          <h3>AGUANTAR</h3>
+          <p>Incendios, fugas, plagas, apagones y jefes. La tripulación necesita ayuda.</p>
+        </div>
+        <div class="panel step frag" id="frag-bucle-4">
+          <div class="num">04</div>
+          <h3>COBRAR</h3>
+          <p>Informe final: créditos y experiencia para mejorar al conserje.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 · LA NAVE -->
+    <div id="scene-nave" class="scene-frame clip" data-composition-id="nave" data-start="18" data-duration="6" data-label="Una nave viva" data-width="1920" data-height="1080">
+      <div class="topbar"><span>SIMULACIÓN</span><span>04</span></div>
+      <h2 data-anim>UNA NAVE VIVA</h2>
+      <div class="row">
+        <img class="shot" data-anim src="img/play2.jpg" alt="Partida en curso" style="width: 960px; height: 540px" />
+        <div style="flex: 1; display: grid; gap: 30px">
+          <div data-anim><span class="num">8</span> <p style="display: inline">salas + pasillo central</p></div>
+          <div data-anim><span class="num">12</span> <p style="display: inline">tipos de tripulante con necesidades propias</p></div>
+          <div data-anim><span class="num">29</span> <p style="display: inline">incidentes: cotidianos, técnicos, invasiones y absurdos</p></div>
+        </div>
+      </div>
+      <p class="dim" data-anim style="margin-top: 36px; font-size: 44px">Hambre, fatiga, vejiga, trabajo y vida social deciden qué hace cada tripulante… y qué ensucia.</p>
+    </div>
+
+    <!-- 5 · HERRAMIENTAS -->
+    <div id="scene-herramientas" class="scene-frame clip" data-composition-id="herramientas" data-start="24" data-duration="6" data-label="Herramientas" data-width="1920" data-height="1080">
+      <div class="topbar"><span>EQUIPAMIENTO</span><span>05</span></div>
+      <h2 data-anim>8 HERRAMIENTAS</h2>
+      <div class="tools">
+        <div class="panel tool" data-anim><div class="key">1</div><div><b>Fregona básica</b><span>Limpia casi todo; el suelo queda mojado</span></div></div>
+        <div class="panel tool" data-anim><div class="key">2</div><div><b>Pistola de espuma</b><span>Sella fugas y apaga incendios</span></div></div>
+        <div class="panel tool" data-anim><div class="key">3</div><div><b>Aspiradora espacial</b><span>Sólidos… y criaturas</span></div></div>
+        <div class="panel tool" data-anim><div class="key">4</div><div><b>Desinfectante</b><span>Moho, contagios y curas</span></div></div>
+        <div class="panel tool" data-anim><div class="key">5</div><div><b>Pulverizador criogénico</b><span>Congela lo que se mueve</span></div></div>
+        <div class="panel tool" data-anim><div class="key">6</div><div><b>Trampas para plagas</b><span>Para roedores e insectos</span></div></div>
+        <div class="panel tool" data-anim><div class="key">7</div><div><b>Dron de limpieza</b><span>Aspira por su cuenta</span></div></div>
+        <div class="panel tool" data-anim><div class="key">8</div><div><b>Superfregona experimental</b><span>El legado de MOP-1</span></div></div>
+      </div>
+    </div>
+
+    <!-- 6 · MODOS -->
+    <div id="scene-modos" class="scene-frame clip" data-composition-id="modos" data-start="30" data-duration="6" data-label="Modos de juego" data-width="1920" data-height="1080">
+      <div class="topbar"><span>MODOS DE JUEGO</span><span>06</span></div>
+      <h2 data-anim>MODOS DE JUEGO</h2>
+      <div class="modes">
+        <div class="panel mode" data-anim><h3>HISTORIA</h3><p>Turno de prueba + 9 noches con misión. Jefes: el Glorp del Baño 7, la Reina del Moho y el Rey Aspirador.</p></div>
+        <div class="panel mode" data-anim><h3>TURNO INFINITO</h3><p>Aguantar todo lo posible y batir el récord.</p></div>
+        <div class="panel mode" data-anim><h3>ZEN · CAOS</h3><p>Limpieza tranquila sin emergencias graves… o todo a la vez.</p></div>
+        <div class="panel mode" data-anim><h3>DESAFÍOS</h3><p>Reglas especiales: sin agua, a oscuras, turno exprés, solo fregona…</p></div>
+      </div>
+      <p class="dim" data-anim style="margin-top: 34px; font-size: 44px">Semilla de nave opcional: la misma semilla genera la misma nave.</p>
+    </div>
+
+    <!-- 7 · PROGRESIÓN -->
+    <div id="scene-progresion" class="scene-frame clip" data-composition-id="progresion" data-start="36" data-duration="6" data-label="Progresión" data-width="1920" data-height="1080">
+      <div class="topbar"><span>PROGRESIÓN</span><span>07</span></div>
+      <h2 data-anim>VOLVER A FICHAR</h2>
+      <div class="row">
+        <ul class="bul tight" style="flex: 1" data-anim>
+          <li><span class="amber">Taquilla de mejoras:</span> 12 mejoras en 5 ramas</li>
+          <li><span class="amber">Especialización</span> al nivel 5: sanitario, emergencias, plagas o antigravedad</li>
+          <li><span class="amber">Vestuario:</span> 5 uniformes y 8 gorros</li>
+          <li><span class="amber">24 logros</span> y un archivo secreto con notas ocultas</li>
+          <li class="dim">Guardado en el navegador (localStorage)</li>
+        </ul>
+        <img class="shot" data-anim src="img/shop.jpg" alt="Taquilla de mejoras" style="width: 820px; height: 461px" />
+      </div>
+    </div>
+
+    <!-- 8 · COOPERATIVO -->
+    <div id="scene-coop" class="scene-frame clip" data-composition-id="coop" data-start="42" data-duration="6" data-label="Multijugador" data-width="1920" data-height="1080">
+      <div class="topbar"><span>MULTIJUGADOR</span><span>08</span></div>
+      <h2 data-anim>COOPERATIVO ONLINE</h2>
+      <div class="row">
+        <div style="flex: 1">
+          <ul class="bul tight" data-anim>
+            <li>Hasta <span class="green">4 conserjes</span> en la misma nave</li>
+            <li>Sala con código de 5 letras o enlace <span class="cyan">?sala=CÓDIGO</span></li>
+            <li>Quien llega tarde aparece directamente en la nave</li>
+            <li>Si un conserje cae, llega un repuesto a los 10 s</li>
+            <li><span class="green">Chat de voz</span> con opción de voz por proximidad</li>
+          </ul>
+        </div>
+        <div style="display: grid; gap: 24px" data-anim>
+          <img class="shot" src="img/coop.jpg" alt="Dos conserjes en la misma partida" style="width: 820px; height: 461px" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 9 · ARQUITECTURA -->
+    <div id="scene-arquitectura" class="scene-frame clip" data-composition-id="arquitectura" data-start="48" data-duration="6" data-label="Arquitectura" data-width="1920" data-height="1080">
+      <div class="topbar"><span>ARQUITECTURA DEL MULTIJUGADOR</span><span>09</span></div>
+      <h2 data-anim>ANFITRIÓN + REPETIDOR</h2>
+      <div class="arch" data-anim>
+        <div class="panel node">
+          <h3>ANFITRIÓN</h3>
+          <p>Simula la nave entera: tripulación, criaturas, fuego y suciedad.</p>
+        </div>
+        <div class="arrow"><span class="glyph">⇄</span><small>estado</small></div>
+        <div class="panel node" style="border-color: var(--amber)">
+          <h3>SERVIDOR /mp</h3>
+          <p>Node.js reenvía mensajes por sala. WebSocket propio (RFC 6455) o sondeo HTTP si no hay WebSocket.</p>
+        </div>
+        <div class="arrow"><span class="glyph">⇄</span><small>entradas</small></div>
+        <div class="panel node">
+          <h3>INVITADOS</h3>
+          <p>Mueven a su conserje y envían sus acciones al anfitrión.</p>
+        </div>
+      </div>
+      <div class="panel voice frag" id="frag-arq-voz">
+        <span class="tag">VOZ</span>
+        <p>Audio directo entre navegadores con <span class="cyan">WebRTC</span>. El servidor solo reenvía la señalización (STUN, y TURN opcional).</p>
+      </div>
+    </div>
+
+    <!-- 10 · STACK -->
+    <div id="scene-stack" class="scene-frame clip" data-composition-id="stack" data-start="54" data-duration="6" data-label="Stack tecnológico" data-width="1920" data-height="1080">
+      <div class="topbar"><span>STACK TECNOLÓGICO</span><span>10</span></div>
+      <h2 data-anim>STACK TECNOLÓGICO</h2>
+      <div class="stack">
+        <div class="panel" data-anim><h3>MOTOR</h3><b>Phaser 3.90</b><span>Escenas, input, cámara y render en canvas/WebGL</span></div>
+        <div class="panel" data-anim><h3>GRÁFICOS</h3><b>Gráficos por código</b><span>2 estilos: bloques isométricos o pixel art 3/4. Ni un PNG</span></div>
+        <div class="panel" data-anim><h3>SONIDO</h3><b>Web Audio API</b><span>Efectos sintetizados en el navegador</span></div>
+        <div class="panel" data-anim><h3>RED</h3><b>WebSocket · WebRTC</b><span>Salas en tiempo real y voz entre jugadores</span></div>
+        <div class="panel" data-anim><h3>SERVIDOR</h3><b>Node.js ≥ 18</b><span>Sin dependencias de npm</span></div>
+        <div class="panel" data-anim><h3>CÓDIGO</h3><b>TypeScript · Vite</b><span>Unas 18.000 líneas en modo estricto</span></div>
+      </div>
+    </div>
+
+    <!-- 11 · SERVIDOR -->
+    <div id="scene-servidor" class="scene-frame clip" data-composition-id="servidor" data-start="60" data-duration="6" data-label="Servidor" data-width="1920" data-height="1080">
+      <div class="topbar"><span>SERVER.JS</span><span>11</span></div>
+      <h2 data-anim>UN SERVIDOR, CERO DEPENDENCIAS</h2>
+      <div class="row">
+        <div class="term" data-anim style="flex: none; width: 860px">const http   = require('http');
+const zlib   = require('zlib');
+const crypto = require('crypto');
+// …y nada más.
+
+GET  /           → el juego (dist/)
+GET  /healthz    → ok · salas 0
+GET  /mp/ice     → STUN / TURN
+WS   /mp         → salas
+POST /mp/send    → sondeo HTTP</div>
+        <ul class="bul" style="flex: 1" data-anim>
+          <li>Brotli y gzip en memoria, ETag y caché inmutable</li>
+          <li>Cabeceras de seguridad y bloqueo de rutas fuera de dist/</li>
+          <li>Límite de 4 MB por mensaje y ping cada 25 s</li>
+          <li>TURN configurable con variables de entorno</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 12 · DESPLIEGUE -->
+    <div id="scene-despliegue" class="scene-frame clip" data-composition-id="despliegue" data-start="66" data-duration="6" data-label="Despliegue" data-width="1920" data-height="1080">
+      <div class="topbar"><span>DESPLIEGUE</span><span>12</span></div>
+      <h2 data-anim>EN PRODUCCIÓN</h2>
+      <div class="row">
+        <div style="flex: 1">
+          <ul class="bul" data-anim>
+            <li>Hostinger · aplicación Node.js</li>
+            <li>Archivo de entrada <span class="green">server.js</span>, inicio <span class="green">npm start</span></li>
+            <li>Puerto asignado con la variable <span class="green">PORT</span></li>
+            <li>HTTPS: necesario para el micrófono</li>
+            <li>Alternativa en VPS: PM2 + Nginx</li>
+          </ul>
+        </div>
+        <div class="term" data-anim style="flex: none; width: 760px; font-size: 42px">$ curl https://khaki-elk-
+  914724.hostingersite.com
+  /healthz
+
+ok · salas 0</div>
+      </div>
+    </div>
+
+    <!-- 13 · GRACIAS -->
+    <div id="scene-gracias" class="scene-frame clip" data-composition-id="gracias" data-start="72" data-duration="6" data-label="Gracias" data-width="1920" data-height="1080">
+      <div class="topbar"><span>FIN DEL TURNO</span><span>13</span></div>
+      <h2 data-anim style="font-size: 84px">¡GRACIAS!</h2>
+      <p class="green" data-anim style="margin-bottom: 50px">¿Fichamos? La nave no se va a fregar sola.</p>
+      <div class="links">
+        <div class="link" data-anim><span class="tag">JUGAR</span><p>khaki-elk-914724.hostingersite.com</p></div>
+        <div class="link" data-anim><span class="tag">CÓDIGO</span><p>github.com/nastxp/mop-13-turno-de-noche</p></div>
+        <div class="link" data-anim><span class="tag">SLIDES</span><p>khaki-elk-914724.hostingersite.com/slides/</p></div>
+      </div>
+    </div>
+
+    <div id="scanlines"></div>
+    </div>
+
+    <!-- Línea de tiempo raíz: 13 slides × 6 s -->
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+        tl.to({}, { duration: 78 });
+        window.__timelines["root"] = tl;
+      })();
+    </script>
+
+    <!-- Visibilidad de escenas, entradas y fragmentos (según la posición de la línea de tiempo) -->
+    <script>
+      (function () {
+        var scenes = [
+          { id: "scene-cover", start: 0, end: 6 },
+          { id: "scene-idea", start: 6, end: 12 },
+          { id: "scene-bucle", start: 12, end: 18 },
+          { id: "scene-nave", start: 18, end: 24 },
+          { id: "scene-herramientas", start: 24, end: 30 },
+          { id: "scene-modos", start: 30, end: 36 },
+          { id: "scene-progresion", start: 36, end: 42 },
+          { id: "scene-coop", start: 42, end: 48 },
+          { id: "scene-arquitectura", start: 48, end: 54 },
+          { id: "scene-stack", start: 54, end: 60 },
+          { id: "scene-servidor", start: 60, end: 66 },
+          { id: "scene-despliegue", start: 66, end: 72 },
+          { id: "scene-gracias", start: 72, end: 78 },
+        ];
+        // Cada fragmento es visible si la línea de tiempo está en o después de su momento (dentro de su slide).
+        var fragments = [
+          { id: "frag-bucle-2", time: 12.3, end: 18 },
+          { id: "frag-bucle-3", time: 12.6, end: 18 },
+          { id: "frag-bucle-4", time: 12.9, end: 18 },
+          { id: "frag-arq-voz", time: 48.3, end: 54 },
+        ];
+        var fragState = {};
+        var lastActiveId = null;
+
+        function fireEntrance(sceneEl) {
+          var els = sceneEl.querySelectorAll("[data-anim]");
+          if (!els.length) return;
+          gsap.fromTo(
+            els,
+            { opacity: 0, y: 28 },
+            { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: "power2.out", overwrite: true },
+          );
+        }
+
+        function updateVisibility(t) {
+          var end = scenes[scenes.length - 1].end;
+          if (t >= end) t = end - 0.001;
+          for (var i = 0; i < scenes.length; i++) {
+            var s = scenes[i];
+            var el = document.getElementById(s.id);
+            if (!el) continue;
+            var active = t >= s.start && t < s.end;
+            el.style.opacity = active ? "1" : "0";
+            el.style.visibility = active ? "visible" : "hidden";
+            el.style.pointerEvents = active ? "auto" : "none";
+            if (active && lastActiveId !== s.id) {
+              lastActiveId = s.id;
+              fireEntrance(el);
+            }
+          }
+          for (var f = 0; f < fragments.length; f++) {
+            var fr = fragments[f];
+            var shown = t >= fr.time && t < fr.end;
+            if (fragState[fr.id] === shown) continue;
+            fragState[fr.id] = shown;
+            var fEl = document.getElementById(fr.id);
+            if (!fEl) continue;
+            if (shown) {
+              gsap.fromTo(fEl, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", overwrite: true });
+            } else {
+              gsap.set(fEl, { opacity: 0, clearProps: "transform" });
+            }
+          }
+        }
+
+        window.__hfSetTime = updateVisibility;
+        updateVisibility(0);
+
+        var root = window.__timelines && window.__timelines["root"];
+        if (root) {
+          root.eventCallback("onUpdate", function () {
+            updateVisibility(root.time());
+          });
+        }
+      })();
+    </script>
+
+    <!-- Manifiesto de escenas para <hyperframes-slideshow> (sin motor de HyperFrames delante) -->
+    <script>
+      (function () {
+        var FPS = 30;
+        var total = 78;
+        var scenes = [
+          { id: "cover", start: 0, duration: 6 },
+          { id: "idea", start: 6, duration: 6 },
+          { id: "bucle", start: 12, duration: 6 },
+          { id: "nave", start: 18, duration: 6 },
+          { id: "herramientas", start: 24, duration: 6 },
+          { id: "modos", start: 30, duration: 6 },
+          { id: "progresion", start: 36, duration: 6 },
+          { id: "coop", start: 42, duration: 6 },
+          { id: "arquitectura", start: 48, duration: 6 },
+          { id: "stack", start: 54, duration: 6 },
+          { id: "servidor", start: 60, duration: 6 },
+          { id: "despliegue", start: 66, duration: 6 },
+          { id: "gracias", start: 72, duration: 6 },
+        ];
+        function postTimeline() {
+          if (parent === window) return;
+          parent.postMessage({ source: "hf-preview", type: "timeline", durationInFrames: total * FPS, scenes: scenes }, "*");
+        }
+        if (document.readyState === "complete") setTimeout(postTimeline, 300);
+        else
+          window.addEventListener("load", function () {
+            setTimeout(postTimeline, 300);
+          });
+      })();
+    </script>
+  </body>
+</html>
